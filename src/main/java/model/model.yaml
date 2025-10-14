@@ -1,0 +1,326 @@
+openapi: 3.0.0
+info:
+  title: Shortly - URL Shortener API
+  version: 1.0.0
+  description: API for creating and managing shortened URLs with analytics
+
+# servers:
+#   - url: https://api.shorturl.com/v1
+#     description: Production server
+
+paths:
+  /shorten:
+    post:
+      summary: Create a shortened URL
+      operationId: createShortUrl
+      tags:
+        - URLs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShortUrlRequest'
+      responses:
+        '201':
+          description: Shortened URL created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortUrlResponse'
+        '400':
+          description: Invalid request
+        '409':
+          description: Custom alias already exists
+
+  # /shorten/{shortCode}:
+  #   get:
+  #     summary: Retrieve shortened URL details
+  #     operationId: getShortUrl
+  #     tags:
+  #       - URLs
+  #     parameters:
+  #       - name: shortCode
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: Short URL details
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ShortUrlResponse'
+  #       '404':
+  #         description: Short URL not found
+
+  #   patch:
+  #     summary: Update a shortened URL
+  #     operationId: updateShortUrl
+  #     tags:
+  #       - URLs
+  #     parameters:
+  #       - name: shortCode
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/UpdateShortUrlRequest'
+  #     responses:
+  #       '200':
+  #         description: Short URL updated successfully
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ShortUrlResponse'
+  #       '404':
+  #         description: Short URL not found
+
+  #   delete:
+  #     summary: Delete a shortened URL
+  #     operationId: deleteShortUrl
+  #     tags:
+  #       - URLs
+  #     parameters:
+  #       - name: shortCode
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '204':
+  #         description: Short URL deleted successfully
+  #       '404':
+  #         description: Short URL not found
+
+  # /r/{shortCode}:
+  #   get:
+  #     summary: Redirect to original URL
+  #     operationId: redirectUrl
+  #     tags:
+  #       - Redirect
+  #     parameters:
+  #       - name: shortCode
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '301':
+  #         description: Permanent redirect to original URL
+  #         headers:
+  #           Location:
+  #             schema:
+  #               type: string
+  #       '404':
+  #         description: Short URL not found
+
+  # /shorten/{shortCode}/analytics:
+  #   get:
+  #     summary: Get analytics for a shortened URL
+  #     operationId: getAnalytics
+  #     tags:
+  #       - Analytics
+  #     parameters:
+  #       - name: shortCode
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: Analytics data
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/AnalyticsResponse'
+  #       '404':
+  #         description: Short URL not found
+
+components:
+  schemas:
+    ShortUrl:
+      type: object
+      required:
+        - id
+        - shortCode
+        - originalUrl
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier
+        shortCode:
+          type: string
+          description: Unique short code for the URL
+          example: abc123
+        originalUrl:
+          type: string
+          format: uri
+          description: The full original URL
+        customAlias:
+          type: string
+          nullable: true
+          description: Optional custom alias instead of auto-generated short code
+        title:
+          type: string
+          nullable: true
+          description: Optional title for the shortened URL
+        description:
+          type: string
+          nullable: true
+          description: Optional description
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Optional expiration date
+        isActive:
+          type: boolean
+          default: true
+          description: Whether the URL is active
+        clickCount:
+          type: integer
+          default: 0
+          description: Total number of clicks
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when URL was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when URL was last updated
+        metadata:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Additional custom metadata
+
+    CreateShortUrlRequest:
+      type: object
+      required:
+        - originalUrl
+      properties:
+        originalUrl:
+          type: string
+          format: uri
+          description: The full original URL to shorten
+          example: https://example.com/very/long/path?param=value
+        customAlias:
+          type: string
+          nullable: true
+          description: Optional custom short code
+          example: mylink
+        title:
+          type: string
+          nullable: true
+          description: Optional title for reference
+        description:
+          type: string
+          nullable: true
+          description: Optional description
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Optional expiration date
+        metadata:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Custom metadata to store
+
+    # UpdateShortUrlRequest:
+    #   type: object
+    #   properties:
+    #     title:
+    #       type: string
+    #       nullable: true
+    #     description:
+    #       type: string
+    #       nullable: true
+    #     expiresAt:
+    #       type: string
+    #       format: date-time
+    #       nullable: true
+    #     isActive:
+    #       type: boolean
+    #     metadata:
+    #       type: object
+    #       nullable: true
+    #       additionalProperties: true
+
+    ShortUrlResponse:
+      allOf:
+        - $ref: '#/components/schemas/ShortUrl'
+        - type: object
+          properties:
+            shortUrl:
+              type: string
+              format: uri
+              description: The complete shortened URL
+              example: https://short.url/abc123
+
+    # Analytics:
+    #   type: object
+    #   properties:
+    #     shortCode:
+    #       type: string
+    #     totalClicks:
+    #       type: integer
+    #     uniqueClicks:
+    #       type: integer
+    #     clicksByDate:
+    #       type: array
+    #       items:
+    #         type: object
+    #         properties:
+    #           date:
+    #             type: string
+    #             format: date
+    #           clicks:
+    #             type: integer
+    #     clicksByCountry:
+    #       type: array
+    #       items:
+    #         type: object
+    #         properties:
+    #           country:
+    #             type: string
+    #           clicks:
+    #             type: integer
+    #     clicksByReferrer:
+    #       type: array
+    #       items:
+    #         type: object
+    #         properties:
+    #           referrer:
+    #             type: string
+    #           clicks:
+    #             type: integer
+    #     clicksByUserAgent:
+    #       type: array
+    #       items:
+    #         type: object
+    #         properties:
+    #           userAgent:
+    #             type: string
+    #           clicks:
+    #             type: integer
+
+    # AnalyticsResponse:
+    #   allOf:
+    #     - $ref: '#/components/schemas/Analytics'
+    #     - type: object
+    #       properties:
+    #         lastUpdated:
+    #           type: string
+    #           format: date-time
