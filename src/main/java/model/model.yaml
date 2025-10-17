@@ -33,27 +33,27 @@ paths:
         '409':
           description: Custom alias already exists
 
-  # /shorten/{shortCode}:
-  #   get:
-  #     summary: Retrieve shortened URL details
-  #     operationId: getShortUrl
-  #     tags:
-  #       - URLs
-  #     parameters:
-  #       - name: shortCode
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: string
-  #     responses:
-  #       '200':
-  #         description: Short URL details
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/ShortUrlResponse'
-  #       '404':
-  #         description: Short URL not found
+  /shorten/{shortCode}:
+    get:
+      summary: Retrieve shortened URL details
+      operationId: getShortUrl
+      tags:
+        - URLs
+      parameters:
+        - name: shortCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Short URL details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortUrlResponse'
+        '404':
+          description: Short URL not found
 
   #   patch:
   #     summary: Update a shortened URL
