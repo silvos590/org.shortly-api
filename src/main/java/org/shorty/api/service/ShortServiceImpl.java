@@ -6,9 +6,18 @@ import org.shorty.api.model.ShortUrlResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.couchbase.client.java.Cluster;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+
+@ApplicationScoped
 public class ShortServiceImpl implements UrlsApi {
 
     private static Logger logger = LoggerFactory.getLogger(ShortServiceImpl.class);
+
+    @Inject
+    private Cluster couchbaseCluster;
 
     @Override
     public ShortUrlResponse createShortUrl(CreateShortUrlRequest createShortUrlRequest) {
