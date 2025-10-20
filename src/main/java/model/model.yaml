@@ -32,6 +32,15 @@ paths:
           description: Invalid request
         '409':
           description: Custom alias already exists
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
 
   /shorten/{shortCode}:
     get:
