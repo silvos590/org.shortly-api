@@ -1,5 +1,6 @@
 package org.shorty.api.service;
 
+import org.shorty.api.database.CouchbaseDatabaseInitializer;
 import org.shorty.api.UrlsApi;
 import org.shorty.api.model.CreateShortUrlRequest;
 import org.shorty.api.model.ShortUrl;
@@ -7,7 +8,6 @@ import org.shorty.api.model.ShortUrlResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.kv.GetResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,7 +15,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.time.Duration;
 
 @ApplicationScoped
 public class ShortlyServiceImpl implements UrlsApi {
@@ -26,7 +25,7 @@ public class ShortlyServiceImpl implements UrlsApi {
     private ObjectMapper objectMapper;
 
     @Inject
-    private Cluster cluster;
+    private CouchbaseDatabaseInitializer couchbaseDatabaseInitializer;
 
     @Override
     public ShortUrlResponse createShortUrl(CreateShortUrlRequest createShortUrlRequest) {
@@ -45,14 +44,12 @@ public class ShortlyServiceImpl implements UrlsApi {
 
         // Store in Couchbase
         try {
-            cluster.bucket("shortly-urls").waitUntilReady(Duration.ofMinutes(1));
             logger.info("Connected to Couchbase bucket 'shortly-urls'");
-            //ObjectWriter ow = objectMapper.writer().withDefaultPrettyPrinter();
 
             String json = objectMapper.writeValueAsString(shortUrl);
             JsonObject jsonObject = JsonObject.fromJson(json);
 
-            cluster.bucket("shortly-urls").defaultCollection()
+            couchbaseDatabaseInitializer.getBucket().defaultCollection()
                     .upsert(shortUrl.getShortCode(), jsonObject);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -74,7 +71,7 @@ public class ShortlyServiceImpl implements UrlsApi {
         logger.info("Retrieving short URL details for short code: {}", shortCode);
 
         // Retrieve from Couchbase
-        GetResult result = cluster.bucket("shortly-urls").defaultCollection()
+        GetResult result = couchbaseDatabaseInitializer.getBucket().defaultCollection()
                 .get(shortCode);
 
         if (result == null ) {
