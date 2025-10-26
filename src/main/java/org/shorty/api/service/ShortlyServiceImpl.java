@@ -52,8 +52,6 @@ public class ShortlyServiceImpl implements UrlsApi {
             couchbaseDatabaseInitializer.getBucket().defaultCollection()
                     .upsert(shortUrl.getShortCode(), jsonObject);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            //TODO return HTTP 500
             throw new RuntimeException("Failed to store short URL", e);
         }
 
@@ -71,11 +69,15 @@ public class ShortlyServiceImpl implements UrlsApi {
         logger.info("Retrieving short URL details for short code: {}", shortCode);
 
         // Retrieve from Couchbase
-        GetResult result = couchbaseDatabaseInitializer.getBucket().defaultCollection()
-                .get(shortCode);
+        GetResult result = null;
+        try {
+            result = couchbaseDatabaseInitializer.getBucket().defaultCollection()
+                    .get(shortCode);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve short URL", e);
+        }
 
-        if (result == null ) {
-            //TODO return HTTP 404
+        if (result == null) {
             throw new RuntimeException("Short URL not found");
         } else {
             logger.info("Short URL found in Couchbase for short code: {}", shortCode);
@@ -83,8 +85,7 @@ public class ShortlyServiceImpl implements UrlsApi {
             try {
                 shortUrl = objectMapper.readValue(result.contentAsObject().toString(), ShortUrl.class);
             } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new RuntimeException("Failed to retrieve short URL", e);
             }
 
             return new ShortUrlResponse()
