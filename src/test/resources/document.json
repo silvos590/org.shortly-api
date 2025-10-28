@@ -1,0 +1,14 @@
+{
+  "createdAt": "2025-10-26T14:56:50.2197914+01:00",
+  "metadata": null,
+  "clickCount": 0,
+  "description": "Shortened URL for the Spring 2025 newsletter campaign",
+  "id": "769a2439-5757-4e00-aaa6-5a85b15b12a8",
+  "originalUrl": "https://example.com/very/long/path?param=value",
+  "title": "Example link for marketing campaign",
+  "isActive": true,
+  "customAlias": "mylink",
+  "shortCode": "abc123",
+  "expiresAt": "2025-12-31T23:59:59Z",
+  "updatedAt": null
+}

@@ -1,0 +1,13 @@
+{
+  "originalUrl": "https://example.com/very/long/path?param=value",
+  "customAlias": "mylink",
+  "title": "Example link for marketing campaign",
+  "description": "Shortened URL for the Spring 2025 newsletter campaign",
+  "expiresAt": "2025-12-31T23:59:59Z",
+  "metadata": {
+    "campaign": "spring-2025",
+    "creator": "marketing-team",
+    "region": "EU",
+    "tags": ["newsletter", "promotion"]
+  }
+}

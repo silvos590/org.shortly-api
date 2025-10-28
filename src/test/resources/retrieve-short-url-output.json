@@ -1,0 +1,15 @@
+{
+  "id": "769a2439-5757-4e00-aaa6-5a85b15b12a8",
+  "shortCode": "abc123",
+  "originalUrl": "https://example.com/very/long/path?param=value",
+  "createdAt": "2025-10-26T13:56:50.2197914Z",
+  "customAlias": null,
+  "title": null,
+  "description": null,
+  "expiresAt": null,
+  "isActive": true,
+  "clickCount": 0,
+  "updatedAt": null,
+  "metadata": null,
+  "shortUrl": null
+}
