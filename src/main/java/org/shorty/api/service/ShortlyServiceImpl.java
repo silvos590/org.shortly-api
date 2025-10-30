@@ -1,6 +1,11 @@
 package org.shorty.api.service;
 
 import org.shorty.api.database.CouchbaseDatabaseInitializer;
+import org.shorty.api.utils.Utils;
+
+import java.time.OffsetDateTime;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.shorty.api.UrlsApi;
 import org.shorty.api.model.CreateShortUrlRequest;
 import org.shorty.api.model.ShortUrl;
@@ -27,6 +32,9 @@ public class ShortlyServiceImpl implements UrlsApi {
     @Inject
     private CouchbaseDatabaseInitializer couchbaseDatabaseInitializer;
 
+    @ConfigProperty(name = "document.max.expiration.days", defaultValue = "10")
+    int documentMaxExpirationDays;
+
     @Override
     public ShortUrlResponse createShortUrl(CreateShortUrlRequest createShortUrlRequest) {
         logger.info("Creating short URL for original URL: {}", createShortUrlRequest.getOriginalUrl());
@@ -40,7 +48,7 @@ public class ShortlyServiceImpl implements UrlsApi {
         shortUrl.setShortCode(generateShortCode());
         shortUrl.setId(java.util.UUID.randomUUID());
         shortUrl.setDescription(createShortUrlRequest.getDescription());
-        shortUrl.setExpiresAt(createShortUrlRequest.getExpiresAt());
+        shortUrl.setExpiresAt(Utils.computeMaxExpirationDate(createShortUrlRequest.getExpiresAt(), documentMaxExpirationDays));
 
         // Store in Couchbase
         try {
