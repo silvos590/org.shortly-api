@@ -8,6 +8,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.shorty.api.database.CouchbaseDatabaseInitializer;
 import org.shorty.api.TestUtils;
+
+import com.couchbase.client.core.error.DocumentExistsException;
+import com.couchbase.client.core.error.context.ErrorContext;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.kv.GetResult;
 
@@ -84,6 +87,17 @@ public class ServiceTest {
             .body("id", is("769a2439-5757-4e00-aaa6-5a85b15b12a8"))
             .body("createdAt", is("2025-10-26T13:56:50.2197914Z"));
 
+        // Test that short code is not upsert twice
+        when(couchbaseDatabaseInitializer.getBucket().defaultCollection()
+                .upsert(any(), any())).thenThrow( DocumentExistsException.class);
+
+        given()
+            .contentType("application/json")
+            .body(createShortUrlInput)
+        .when()
+            .post("/shorten")
+        .then()
+            .statusCode(400);
     }
 
 }

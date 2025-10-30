@@ -1,9 +1,9 @@
 package org.shorty.api.service;
 
 import org.shorty.api.database.CouchbaseDatabaseInitializer;
+import org.shorty.api.exception.ServiceException;
+import org.shorty.api.exception.BadRequestException;
 import org.shorty.api.utils.Utils;
-
-import java.time.OffsetDateTime;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.shorty.api.UrlsApi;
@@ -13,6 +13,7 @@ import org.shorty.api.model.ShortUrlResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.couchbase.client.core.error.DocumentExistsException;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.kv.GetResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -59,8 +60,10 @@ public class ShortlyServiceImpl implements UrlsApi {
 
             couchbaseDatabaseInitializer.getBucket().defaultCollection()
                     .upsert(shortUrl.getShortCode(), jsonObject);
+        } catch (DocumentExistsException e) {
+            throw new BadRequestException("Short code already exists");
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to store short URL", e);
+            throw new ServiceException("Failed to store short URL");
         }
 
         // return a dummy response for now
@@ -82,18 +85,18 @@ public class ShortlyServiceImpl implements UrlsApi {
             result = couchbaseDatabaseInitializer.getBucket().defaultCollection()
                     .get(shortCode);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to retrieve short URL", e);
+            throw new ServiceException("Failed to retrieve short URL");
         }
 
         if (result == null) {
-            throw new RuntimeException("Short URL not found");
+            throw new ServiceException("Short URL not found");
         } else {
             logger.info("Short URL found in Couchbase for short code: {}", shortCode);
             ShortUrl shortUrl = null;
             try {
                 shortUrl = objectMapper.readValue(result.contentAsObject().toString(), ShortUrl.class);
             } catch (JsonProcessingException e) {
-                throw new RuntimeException("Failed to retrieve short URL", e);
+                throw new ServiceException("Failed to retrieve short URL");
             }
 
             return new ShortUrlResponse()
