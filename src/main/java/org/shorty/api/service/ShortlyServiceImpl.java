@@ -91,10 +91,10 @@ public class ShortlyServiceImpl implements UrlsApi {
         if (result == null) {
             throw new ServiceException("Short URL not found");
         } else {
-            logger.info("Short URL found in Couchbase for short code: {}", shortCode);
             ShortUrl shortUrl = null;
             try {
                 shortUrl = objectMapper.readValue(result.contentAsObject().toString(), ShortUrl.class);
+                logger.info("Original URL {} found in Couchbase for short code: {}", shortUrl.getOriginalUrl(), shortCode);
             } catch (JsonProcessingException e) {
                 throw new ServiceException("Failed to retrieve short URL");
             }
