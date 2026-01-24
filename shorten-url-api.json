@@ -1,0 +1,87 @@
+{
+  "name": "shorten-url-api",
+  "version": "1",
+  "items": [
+    {
+      "type": "http",
+      "name": "Create short URL",
+      "filename": "Create short URL.bru",
+      "seq": 1,
+      "settings": {
+        "encodeUrl": true,
+        "timeout": 0
+      },
+      "tags": [],
+      "examples": [],
+      "request": {
+        "url": "http://localhost:8080/shorten",
+        "method": "POST",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"originalUrl\": \"https://example.com/\",\n  \"customAlias\": \"string\",\n  \"title\": \"string\",\n  \"description\": \"string\",\n  \"expiresAt\": \"2022-03-10T12:15:50-04:00\",\n  \"metadata\": {\n    \"additionalProp1\": \"string\",\n    \"additionalProp2\": \"string\",\n    \"additionalProp3\": \"string\"\n  }\n}",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {
+          "res": "let data = res.getBody();\nbru.setVar(\"SHORT_CODE\", data.shortCode);"
+        },
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Get long URL",
+      "filename": "Get long URL.bru",
+      "seq": 2,
+      "settings": {
+        "encodeUrl": true,
+        "timeout": 0
+      },
+      "tags": [],
+      "examples": [],
+      "request": {
+        "url": "http://localhost:8080/shorten/{{SHORT_CODE}}",
+        "method": "GET",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    }
+  ],
+  "environments": [],
+  "brunoConfig": {
+    "version": "1",
+    "name": "shorten-url-api",
+    "type": "collection",
+    "ignore": [
+      "node_modules",
+      ".git"
+    ],
+    "size": 0,
+    "filesCount": 0
+  },
+  "exportedAt": "2026-01-24T21:04:39.365Z",
+  "exportedUsing": "Bruno/3.0.2"
+}

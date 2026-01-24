@@ -77,6 +77,11 @@ public class ShortlyServiceImpl implements UrlsApi {
 
     @Override
     public ShortUrlResponse getShortUrl(String shortCode) {
+        // validate shortCode
+        if (isValidShortCode(shortCode) == false) {
+            throw new BadRequestException("Short code is invalid");
+        }
+
         logger.info("Retrieving short URL details for short code: {}", shortCode);
 
         // Retrieve from Couchbase
@@ -105,6 +110,14 @@ public class ShortlyServiceImpl implements UrlsApi {
                     .originalUrl(shortUrl.getOriginalUrl())
                     .createdAt(shortUrl.getCreatedAt());
         }
+    }
+
+    private boolean isValidShortCode(String shortCode) {
+        // check if shortCode is alphanumeric and length is 6
+        if (shortCode == null || shortCode.length() != 6) {
+            return false;
+        }
+        return shortCode.matches("^[a-zA-Z0-9]+$");
     }
 
     private String generateShortCode() {
