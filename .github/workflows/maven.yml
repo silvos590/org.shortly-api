@@ -34,7 +34,6 @@ jobs:
   tag:
     runs-on: ubuntu-latest
     needs: build
-    # Only run on push to main (i.e. merged PR), not on PRs themselves
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     permissions:
@@ -45,27 +44,84 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Get version from pom.xml
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Get current version from pom.xml
       id: get_version
       run: |
         VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        # Strip -SNAPSHOT suffix if present
+        VERSION=${VERSION%-SNAPSHOT}
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-    - name: Check if tag already exists
-      id: check_tag
+    - name: Determine bump type from commit messages since last tag
+      id: bump_type
       run: |
-        TAG="v${{ steps.get_version.outputs.version }}"
-        if git rev-parse "$TAG" >/dev/null 2>&1; then
-          echo "exists=true" >> $GITHUB_OUTPUT
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+        if [ -z "$LAST_TAG" ]; then
+          COMMITS=$(git log --pretty=format:"%s")
         else
-          echo "exists=false" >> $GITHUB_OUTPUT
+          COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"%s")
         fi
 
-    - name: Create and push tag
-      if: steps.check_tag.outputs.exists == 'false'
+        echo "Commits since last tag:"
+        echo "$COMMITS"
+
+        BUMP="patch"  # default
+
+        while IFS= read -r msg; do
+          # Breaking change: feat! or BREAKING CHANGE in body
+          if echo "$msg" | grep -qE '^(feat|fix|chore|refactor|perf|style|test|docs|build|ci)(\(.+\))?!:' \
+          || echo "$msg" | grep -qi "BREAKING CHANGE"; then
+            BUMP="major"
+            break
+          fi
+          # New feature
+          if echo "$msg" | grep -qE '^feat(\(.+\))?:' && [ "$BUMP" != "major" ]; then
+            BUMP="minor"
+          fi
+        done <<< "$COMMITS"
+
+        echo "bump=$BUMP" >> $GITHUB_OUTPUT
+        echo "Determined bump: $BUMP"
+
+    - name: Compute next version
+      id: next_version
       run: |
-        TAG="v${{ steps.get_version.outputs.version }}"
+        CURRENT="${{ steps.get_version.outputs.version }}"
+        BUMP="${{ steps.bump_type.outputs.bump }}"
+
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+
+        case "$BUMP" in
+          major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+          minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+          patch) PATCH=$((PATCH + 1)) ;;
+        esac
+
+        NEXT="$MAJOR.$MINOR.$PATCH"
+        echo "next=$NEXT" >> $GITHUB_OUTPUT
+        echo "Next version: $NEXT"
+
+    - name: Bump version in pom.xml
+      run: mvn versions:set -DnewVersion="${{ steps.next_version.outputs.next }}" -DgenerateBackupPoms=false
+
+    - name: Commit updated pom.xml
+      run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add pom.xml
+        git commit -m "chore: bump version to ${{ steps.next_version.outputs.next }} [skip ci]"
+        git push origin main
+
+    - name: Create and push tag
+      run: |
+        TAG="v${{ steps.next_version.outputs.next }}"
         git tag "$TAG"
         git push origin "$TAG"
